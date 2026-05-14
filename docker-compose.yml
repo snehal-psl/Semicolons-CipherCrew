@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  cve-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - NVD_API_KEY=${NVD_API_KEY}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./projects:/app/projects
+      - ./logs:/app/logs
+    command: scan /app/projects

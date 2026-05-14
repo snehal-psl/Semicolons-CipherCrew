@@ -1,0 +1,146 @@
+# CVE Remediation Agent Configuration
+
+# CVE Detection Settings
+detection:
+  # Minimum CVE severity to remediate (CRITICAL, HIGH, MEDIUM, LOW)
+  min_severity: CRITICAL
+  
+  # Include transitive dependencies
+  include_transitive: true
+  
+  # Data sources for vulnerability detection
+  sources:
+    - osv  # Open Source Vulnerabilities
+    - nvd  # National Vulnerability Database (requires manual NVD setup)
+  
+  # NVD API key (optional, for higher rate limits)
+  nvd_api_key: null
+
+# Supported Package Ecosystems
+ecosystems:
+  - name: npm
+    enabled: true
+    extensions:
+      - package-lock.json
+      - yarn.lock
+      - pnpm-lock.yaml
+  
+  - name: pip
+    enabled: true
+    extensions:
+      - requirements.txt
+      - setup.py
+      - poetry.lock
+  
+  - name: maven
+    enabled: true
+    extensions:
+      - pom.xml
+  
+  - name: gradle
+    enabled: true
+    extensions:
+      - build.gradle
+
+# Version Update Strategy
+version_update:
+  # Strategy: patch (x.y.Z only), minor (x.Y.z), major (X.y.z)
+  strategy: minor
+  
+  # Prefer exact versions over ranges
+  prefer_exact: true
+  
+  # Allow pre-release versions (alpha, beta, rc)
+  allow_prerelease: false
+  
+  # Allow major version jumps for security updates
+  allow_major_for_security: false
+
+# Git Integration Settings
+git:
+  # Branch naming pattern ({cve_id}, {ecosystem}, {package})
+  branch_pattern: "cve-remediation/{cve_id}-{ecosystem}-{package}"
+  
+  # Commit message template
+  commit_template: "chore: remediate CVE {cve_id} in {package}\n\n{description}"
+  
+  # PR title template
+  pr_title_template: "[CVE] {cve_id} - {severity} vulnerability in {package}@{version}"
+  
+  # Auto-merge settings
+  auto_merge: false
+  
+  # Require specific approvers (team/role)
+  require_approval: true
+  approval_teams:
+    - security
+  
+  # Assign PR to team members
+  auto_assign: false
+  assignees:
+    - security-team
+
+# Testing and Validation
+validation:
+  # Run tests after applying upgrades
+  run_tests: true
+  
+  # Test timeout in seconds
+  test_timeout: 300
+  
+  # Test command patterns by ecosystem
+  test_commands:
+    npm: "npm test"
+    python: "pytest"
+    maven: "mvn test"
+    gradle: "gradle test"
+  
+  # Minimum test pass rate to approve merge
+  min_pass_rate: 0.8
+  
+  # Skip merge if tests are unavailable
+  skip_without_tests: false
+
+# AI/LLM Configuration
+ai:
+  # AI model for conflict resolution and changelog analysis
+  enabled: true
+  
+  # Provider: openai, anthropic
+  provider: anthropic
+  
+  # Model name
+  model: claude-3-haiku-20240307
+  
+  # Temperature for version selection (0 = deterministic, 1 = random)
+  temperature: 0.3
+  
+  # Max tokens for analysis
+  max_tokens: 1024
+
+# Notification Settings
+notifications:
+  # Send notifications on remediation completion
+  enabled: false
+  
+  # Channels: slack, email, github
+  channels: []
+  
+  # Slack webhook URL
+  slack_webhook: null
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/cve-agent.log"
+
+# Rate Limiting
+rate_limit:
+  # Max API calls per minute
+  osv_rpm: 10
+  nvd_rpm: 5
+  github_rpm: 60
+  
+  # Backoff strategy: linear, exponential
+  backoff_strategy: exponential
